@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDF Generator</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .editor-container {
+            min-height: 70vh;
+            border: 2px dashed #ccc;
+            transition: all 0.3s ease;
+        }
+        .editor-container:focus-within {
+            border-color: #3b82f6;
+        }
+        @media (max-width: 768px) {
+            .editor-container {
+                min-height: 60vh;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <div class="container mx-auto px-4 py-8 max-w-6xl">
+        <header class="mb-8">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-3xl font-bold text-gray-800">PDF Generator</h1>
+                    <p class="text-gray-600">Create and download your PDF documents in seconds</p>
+                </div>
+                <div class="w-16 h-16">
+                    <img src="https://storage.googleapis.com/workspace-0f70711f-8b4e-4d94-86f1-2a93ccde5887/image/5ea58f4c-8361-420c-8429-c48d5a0ac990.png" alt="PDF document icon with blue gradient background" class="rounded-lg" />
+                </div>
+            </div>
+        </header>
+
+        <div class="bg-white rounded-xl shadow-md overflow-hidden mb-8">
+            <div class="p-4 bg-blue-50 border-b border-gray-200">
+                <h2 class="text-xl font-semibold text-gray-800">Editor</h2>
+            </div>
+            
+            <div class="p-6">
+                <div id="editor" class="editor-container p-4 mb-6 rounded-lg bg-white focus:outline-none" contenteditable="true"></div>
+                
+                <div class="flex flex-wrap gap-4 justify-between">
+                    <div class="flex gap-2">
+                        <button onclick="formatText('bold')" class="px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded-md font-medium">
+                            <span class="font-bold">B</span>
+                        </button>
+                        <button onclick="formatText('italic')" class="px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded-md font-medium">
+                            <span class="italic">I</span>
+                        </button>
+                        <button onclick="formatText('underline')" class="px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded-md font-medium">
+                            <span class="underline">U</span>
+                        </button>
+                    </div>
+                    
+                    <div class="flex gap-4">
+                        <button onclick="clearEditor()" class="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-md font-medium transition">
+                            Clear
+                        </button>
+                        <button onclick="generatePDF()" id="downloadBtn" class="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md font-medium transition flex items-center gap-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd" />
+                            </svg>
+                            Download PDF
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="bg-white rounded-xl shadow-md overflow-hidden">
+            <div class="p-4 bg-blue-50 border-b border-gray-200">
+                <h2 class="text-xl font-semibold text-gray-800">Instructions</h2>
+            </div>
+            <div class="p-6">
+                <ol class="list-decimal pl-5 space-y-2 text-gray-700">
+                    <li>Type or paste your text in the editor above</li>
+                    <li>Use the formatting buttons to style your text</li>
+                    <li>Click "Download PDF" to save your document</li>
+                    <li>Click "Clear" to start a new document</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const { jsPDF } = window.jspdf;
+        
+        function formatText(format) {
+            document.execCommand(format, false, null);
+        }
+        
+        function clearEditor() {
+            document.getElementById('editor').innerHTML = '';
+        }
+        
+        function generatePDF() {
+            const editor = document.getElementById('editor');
+            const content = editor.innerText || 'Your content goes here';
+            
+            // Create PDF
+            const doc = new jsPDF();
+            const lines = doc.splitTextToSize(content, 180);
+            
+            doc.setFont('helvetica');
+            doc.setFontSize(12);
+            doc.text(lines, 20, 20);
+            
+            // Add footer
+            const date = new Date().toLocaleDateString();
+            doc.setFontSize(10);
+            doc.setTextColor(150);
+            doc.text(`Generated on ${date}`, 105, doc.internal.pageSize.height - 10, null, null, 'center');
+            
+            // Save the PDF
+            doc.save('document.pdf');
+            
+            // Visual feedback
+            const btn = document.getElementById('downloadBtn');
+            btn.classList.add('bg-green-600', 'hover:bg-green-700');
+            btn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" /></svg> Downloaded!';
+            
+            setTimeout(() => {
+                btn.classList.remove('bg-green-600', 'hover:bg-green-700');
+                btn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd" /></svg> Download PDF';
+            }, 2000);
+        }
+        
+        // Initialize editor placeholder
+        document.getElementById('editor').addEventListener('focus', function() {
+            if (this.innerHTML === '') {
+                this.innerHTML = '<p></p>';
+            }
+        });
+    </script>
+</body>
+</html>
+
